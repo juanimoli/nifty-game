@@ -5,13 +5,11 @@ import style from './Card.css';
 import { getCryptoHerosTokenAddress } from '../../lib/web3Service';
 import axios from 'axios';
 import LoadingCoin from '../LoadingCoin';
-import Button from 'material-ui/Button';
-
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-} from 'material-ui/Dialog';
+import Button from '@material-ui/core/Button';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent'; 
+import DialogContentText from '@material-ui/core/DialogContentText'; 
 
 const cx = classnames.bind(style);
 
