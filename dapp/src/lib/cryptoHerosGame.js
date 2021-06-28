@@ -1,3 +1,5 @@
+import Web3 from 'web3';
+
 var Promise = require('bluebird');
 const abi = require('ethereumjs-abi');
 
@@ -219,8 +221,8 @@ const cryptoHerosGameInterface = [
 	}
 ];
 
-function CryptoHerosGame(web3, address) {
-  this.web3 = web3;
+function CryptoHerosGame(address) {
+  const web3 = new Web3(window.ethereum);
   const cryptoHerosGameContract = web3.eth.contract(cryptoHerosGameInterface);
   this.cryptoHerosGamePromise = Promise.resolve(Promise.promisifyAll(cryptoHerosGameContract.at(address)));
 }

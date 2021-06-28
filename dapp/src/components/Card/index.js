@@ -10,6 +10,7 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent'; 
 import DialogContentText from '@material-ui/core/DialogContentText'; 
+import Web3 from 'web3';
 
 const cx = classnames.bind(style);
 
@@ -65,17 +66,16 @@ class Card extends Component {
 
   handleSubmitMetaMask =(doMintTx)=>{
     const {account, network} = this.props.metaMask;
-    const {web3} = this.props;
+    const web3 = new Web3(window.ethereum);
     
     const msk = {
       from: account,
       to: getCryptoHerosTokenAddress(network),
-      value: this.props.web3.toWei(0.01, 'ether'),
+      value: web3.toWei(0.01, 'ether'),
       data: doMintTx
     }
 
     web3.eth.sendTransaction(msk, this.handleMetaMaskCallBack);
-    
   }
 
   handleMetaMaskCallBack = (err, result)=>{

@@ -1,6 +1,6 @@
-pragma solidity ^0.4.17;
+pragma solidity >=0.4.22 <0.9.0;
 
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol';
 import './CryptoHerosToken.sol';
 
 contract CryptoHerosGame is Ownable {
@@ -32,9 +32,7 @@ contract CryptoHerosGame is Ownable {
     cryptoHerosToken = _cryptoHerosToken;
   }
 
-  function () payable public {
-
-  }
+  fallback() external payable {}
 
   function createSingleGame(uint _tokenId) payable public returns (uint256) {
     require(msg.value >= minPrice);
@@ -57,20 +55,21 @@ contract CryptoHerosGame is Ownable {
     SingleGame memory _singleGame;
     if (result == 0) {
       _singleGame = SingleGame({player: msg.sender, userResult: userTokenNumber, contractResult: contractTokenNumber, playerBet: msg.value, game: game, result: 2});
-      require(msg.sender.send(msg.value * 1 - gameFee));
+      require(payable(msg.sender).send(msg.value * 1 - gameFee));
 
     } else if (result > 0) {
       _singleGame = SingleGame({player: msg.sender, userResult: userTokenNumber, contractResult: contractTokenNumber, playerBet: msg.value, game: game, result: 0});
-      require(msg.sender.send(msg.value * 150 / 100));
+      require(payable(msg.sender).send(msg.value * 150 / 100));
 
     } else {
       _singleGame = SingleGame({player: msg.sender, userResult: userTokenNumber, contractResult: contractTokenNumber, playerBet: msg.value, game: game, result: 1});
     }
 
-    maxSingleGameId = singleGames.push(_singleGame) - 1;
+    singleGames.push(_singleGame);
+    
+    maxSingleGameId = singleGames.length - 1;
 
-    uint256[] userSingleGames = usersSingleGames[msg.sender];
-    userSingleGames.push(maxSingleGameId);
+    usersSingleGames[msg.sender].push(maxSingleGameId);
 
     return maxSingleGameId;
   }
@@ -79,19 +78,28 @@ contract CryptoHerosGame is Ownable {
   //   return usersSingleGames[_address][_idx].length;
   // }
 
-  function getUserSingleGames(address _address) external view returns (uint256[]) {
+  function getUserSingleGames(address _address) external view returns (uint256[] memory) {
     return usersSingleGames[_address];
   }
 
-  function rand(uint min, uint max) private returns (uint){
+  function rand(uint min, uint max) private returns(uint256) {
     nonce++;
-    return uint(sha3(nonce))%(min+max)-min;
-  }
+    uint256 seed = uint256(keccak256(abi.encodePacked(
+        block.timestamp + block.difficulty +
+        ((uint256(keccak256(abi.encodePacked(block.coinbase)))) / (block.timestamp)) +
+        block.gaslimit + 
+        ((uint256(keccak256(abi.encodePacked(msg.sender)))) / (block.timestamp)) +
+        block.number + nonce
+    )));
+    
+    return seed%(min+max)-min;
+    }
 
   function withdraw(uint amount) public payable onlyOwner returns(bool) {
     require(amount <= address(this).balance);
-    owner.transfer(amount);
+    address payable _owner = payable(owner());
+    _owner.transfer(amount);
     return true;
   }
-
+  
 }

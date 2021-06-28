@@ -1,3 +1,5 @@
+import Web3 from 'web3';
+
 var Promise = require('bluebird');
 
 const simpleTokenInterface = [
@@ -486,8 +488,8 @@ const simpleTokenInterface = [
 /**
  * @class
  */
-function SimpleToken(web3, address) {
-  this.web3 = web3;
+function SimpleToken(address) {
+  const web3 = new Web3(window.ethereum);
   const simpleTokenContract = web3.eth.contract(simpleTokenInterface);
   this.simpleTokenPromise = Promise.resolve(Promise.promisifyAll(simpleTokenContract.at(address)));
 }

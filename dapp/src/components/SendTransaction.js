@@ -9,18 +9,25 @@ class SendTransaction extends Component {
 
   handleSubmit() {
     let self = this;
-    this.props.web3.eth.sendTransaction({
+    const transactionParameters = {
       from: this.props.metaMask.account, 
       to: this.props.metaMask.account,
       value: this.props.web3.toWei(1, 'ether'),
       data: 'dead' 
-    }, function(err, result) {
-        if (err) {
-          self.props.handleWarningOpen(err.message);
-        } else {
-          self.props.handleWarningOpen(result);
-        }
-    });
+    };
+    
+    async() => {
+      const txHash = await ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [transactionParameters],
+      });
+
+      if (txHash == null) {
+        self.props.handleWarningOpen("Error sending transaction");
+      } else {
+        self.props.handleWarningOpen(result);
+      }
+    }
   }
 
   render() {

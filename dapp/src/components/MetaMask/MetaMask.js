@@ -72,69 +72,53 @@ export class MetaMask extends Component {
     this.handleMetaMaskLockDialogClose = this.handleMetaMaskLockDialogClose.bind(this);
   }
 
-  fetchWeb3() {
-    let web3 = window.web3;
-    if (typeof web3 === 'undefined') {
-      this.props.setWeb3(null);
-      this.setState({message: messages.METAMASK_NOT_INSTALL});
+  fetchAccounts = async function() {
+    if (window.ethereum !== null) {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      if (accounts == null) {
+        this.setState({message: messages.LOAD_MATAMASK_WALLET_ERROR});
+      } else {
+        if (accounts.length === 0) {
+          this.props.handleMetaMaskAccount(null);
+          this.setState({metaMaskLockDialogOpen: true, message: messages.EMPTY_METAMASK_ACCOUNT})
+        } else {
+          // if account changed then change redux state
+          if (accounts[0] !== this.props.metaMask.account) {
+            this.props.handleMetaMaskAccount(accounts[0]);
+          }
+        }
+      }
     }
   }
 
-  fetchAccounts() {
-    //const { web3 } = window;
-    if (this.props.web3 !== null) {
-      this.props.web3.eth.getAccounts((err, accounts) => {
-        if (err) {
-          this.setState({message: messages.LOAD_MATAMASK_WALLET_ERROR});
-        } else {
-          if (accounts.length === 0) {
-            this.props.handleMetaMaskAccount(null);
-            this.setState({metaMaskLockDialogOpen: true, message: messages.EMPTY_METAMASK_ACCOUNT})
-          } else {
-            // if account changed then change redux state
-            if (accounts[0] !== this.props.metaMask.account) {
-              this.props.handleMetaMaskAccount(accounts[0]);
-            }
-          }
-        }
-      });
-    }
-  }
+  fetchNetwork = async function() {
+    if (window.ethereum !== null) {
+      let chainId = await window.ethereum.request({ method: 'eth_chainId' });
+      chainId = chainId.substring(2);
 
-  fetchNetwork() {
-    //const { web3 } = window;
-    if (this.props.web3 !== null) {
-      this.props.web3.version.getNetwork((err, netId) => {
-        console.log('netId:',netId);
-        if(netId === "1"){
-          this.props.handleMetaMaskNetwork(null);
-          this.setState({metaMaskLockDialogOpen: true, message:messages.METAMASK_TEST_NET  });
-        }
+      if (chainId === "0x1") {
+        this.props.handleMetaMaskNetwork(null);
+        this.setState({metaMaskLockDialogOpen: true, message:messages.METAMASK_TEST_NET  });
+      }
 
-        
-        if (err) {
-          this.props.handleMetaMaskNetwork(null);
-          this.setState({metaMaskLockDialogOpen: true, message: messages.NETWORK_ERROR });
-        } else {
-          // if network changed then change redux state
-          if (netId !== this.props.metaMask.network) {
-            this.props.handleMetaMaskNetwork(netId);
-          }
+      if (chainId == null) {
+        this.props.handleMetaMaskNetwork(null);
+        this.setState({metaMaskLockDialogOpen: true, message: messages.NETWORK_ERROR });
+      } else {
+        if (chainId !== this.props.metaMask.network) {
+          this.props.handleMetaMaskNetwork(chainId);
         }
-      });
+      }
     }
   }
 
   componentDidMount() {
     let self = this;
     window.addEventListener('load', function() {
-      let web3 = window.web3;
-      if (typeof web3 !== 'undefined') {
-        window.web3 = new Web3(web3.currentProvider);
-        self.props.setWeb3(window.web3);
+      let ethereum = window.ethereum;
+      if (typeof ethereum !== 'undefined') {
         self.fetchAccounts();
         self.fetchNetwork();
-        self.Web3Interval = setInterval(() => self.fetchWeb3(), 1000);
         self.AccountInterval = setInterval(() => self.fetchAccounts(), 1000);
         self.NetworkInterval = setInterval(() => self.fetchNetwork(),  1000);
       } else {

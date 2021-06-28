@@ -9,8 +9,9 @@ const promisify = inner =>
   );
 
 const getBalance = async addr => {
-  const res = await promisify(cb => web3.eth.getBalance(addr, cb));
-  return new web3.BigNumber(res);
+  const web3eth = new Web3(window.ethereum);
+  const res = await promisify(cb => web3eth.eth.getBalance(addr, cb));
+  return new web3eth.BigNumber(res);
 };
 
 module.exports = {

@@ -11,8 +11,7 @@ import { MetaMask } from './MetaMask/MetaMask';
 import { TweenMax } from "gsap/TweenMax";
 import { Warning } from './Warning/Warning';
 import { doGetTokenProperty, doGetOwnedTokens, doMint } from '../lib/cryptoHerosTokenService';
-import { doGetUserSingleGames, getSingleGame, } from '../lib/cryptoHerosGameService';
-
+import { doGetUserSingleGames, getSingleGame } from '../lib/cryptoHerosGameService';
 import LoadingCoin from './LoadingCoin';
 import NiftyAlert from "./NiftyAlert";
 

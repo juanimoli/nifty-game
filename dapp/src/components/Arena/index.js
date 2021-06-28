@@ -34,6 +34,7 @@ import { getCryptoHerosGameAddress } from '../../lib/web3Service';
 import { doCreateSingleGame, doGetUserSingleGames, getSingleGame, } from '../../lib/cryptoHerosGameService';
 import axios from 'axios';
 import NiftyAlert from "../NiftyAlert";
+import Web3 from 'web3';
 
 const NUMBER_IMAGES = [
   'QmNbPeXSeUEg6oEhRVFa5uSwVdi8GbXewttkVKf3zX2oyX',
@@ -147,7 +148,7 @@ export default class extends React.Component {
 
   // 開始賭
   handlePlaceBet = async e => {
-    const { web3, metaMask, historyGamesCount, } = this.props;
+    const { _, metaMask, historyGamesCount, } = this.props;
     const { betEth, selectedCardIdx, historyGames, } = this.state;
     const { account, network } = metaMask;
 
@@ -162,10 +163,11 @@ export default class extends React.Component {
     });
     
     const byteData = doCreateSingleGame(network, selectedCard.tokenId);
+    const web3 = new Web3(window.ethereum);
     const tx = {
       from: account,
       to: getCryptoHerosGameAddress(network),
-      value: this.props.web3.toWei(betEth, 'ether'),
+      value: web3.toWei(betEth, 'ether'),
       data: byteData
     };
     

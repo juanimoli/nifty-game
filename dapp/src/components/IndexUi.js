@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import logo from '../images/logo.png';
 import './indexUi.css';
 export default class className extends Component{
     state={
@@ -8,9 +7,6 @@ export default class className extends Component{
     render() {
         return (
             <div className="ui_item">
-                <a className="logo" href="https://www.portal.network/" target="_blank">
-                    <img className="logo" src={logo} />
-                </a>
                 <div className="ui cloud"></div>
                 <div className="ui cloud2"></div>
                 <div className="ui ladder"></div>

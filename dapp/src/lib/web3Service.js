@@ -57,13 +57,3 @@ export const getCryptoHerosGameAddress = (networkId) => {
       return '0x0';
   }
 }
-
-export const getCurrentAddress = (web3) => {
-  if (web3 === null) return;
-  return web3.eth.accounts[0];
-}
-
-export const getCurrentNetwork = (web3) => {
-  if (web3 === null) return;
-  return web3.version.network;
-}

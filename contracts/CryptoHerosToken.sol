@@ -1,15 +1,17 @@
-pragma solidity ^0.4.17;
+pragma solidity >=0.4.22 <0.9.0;
 
-import 'zeppelin-solidity/contracts/token/ERC721/ERC721Token.sol';
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+//import 'zeppelin-solidity/contracts/token/ERC721/ERC721Token.sol';
+//import 'zeppelin-solidity/contracts/ownership/OwnaFle.sol';
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol';
 
 /**
  * @title ERC721TokenMock
  * This mock just provides a public mint and burn functions for testing purposes,
  * and a public setter for metadata URI
  */
-contract CryptoHerosToken is ERC721Token, Ownable {
-  mapping (uint256 => address) internal tokenOwner;
+contract CryptoHerosToken is ERC721Enumerable, Ownable {
+  mapping (uint256 => address payable) internal tokenOwner;
   uint constant minPrice = 0.01 ether;
 
   string[] public images;
@@ -29,19 +31,19 @@ contract CryptoHerosToken is ERC721Token, Ownable {
   
   mapping(uint256 => Hero) public tokenProperty;
   
-  constructor(string name, string symbol) public
-    ERC721Token(name, symbol)
+  constructor(string memory name, string memory symbol) public
+    ERC721(name, symbol)
   { }
 
-  function initImage(string _image) public onlyOwner {
+  function initImage(string memory _image) public onlyOwner {
     images.push(_image);
   }
 
-  function initBackground(string _background) public onlyOwner {
+  function initBackground(string memory _background) public onlyOwner {
     backgrounds.push(_background);
   }
 
-  function initNumberAndDescription(uint _number, string _description) public onlyOwner {
+  function initNumberAndDescription(uint _number, string memory _description) public onlyOwner {
     numbers.push(_number);
     descriptions.push(_description);
   }
@@ -50,14 +52,15 @@ contract CryptoHerosToken is ERC721Token, Ownable {
    * Only owner can mint
    */
   function mint() public payable {
-    require(numbers.length > 0);
-    require(images.length > 0);
-    require(backgrounds.length > 0);
-    require(descriptions.length > 0);
-    require(msg.value >= minPrice);
-    require(owner.send(msg.value));
+    address payable _owner = payable(owner());
+    require(numbers.length > 0,"error1");
+    require(images.length > 0,"error2");
+    require(backgrounds.length > 0,"error3");
+    require(descriptions.length > 0,"error4");
+    require(msg.value >= minPrice,"error5");
+    require(_owner.send(msg.value),"error6");
     uint256 _tokenId = totalSupply();
-    tokenOwner[_tokenId] = msg.sender;
+    tokenOwner[_tokenId] = payable(msg.sender);
     uint num = rand(0, numbers.length);
     uint _number = numbers[num];
     string memory _image = images[rand(0, images.length)];
@@ -69,30 +72,39 @@ contract CryptoHerosToken is ERC721Token, Ownable {
   }
 
   function burn(uint256 _tokenId) public onlyOwner {
-    tokenOwner[_tokenId] = address(0);
-    super._burn(ownerOf(_tokenId), _tokenId);
+    tokenOwner[_tokenId] = payable(address(0));
+    super._burn(_tokenId);
   }
 
-  function getOwnedTokens(address _owner) external view returns (uint256[]) {
-    return ownedTokens[_owner];
-  }
+//  function getOwnedTokens(address _owner) external view returns (uint256[]) {
+//    return ownedTokens[_owner];
+//  }
 
-  function getTokenProperty(uint256 _tokenId) external view returns (uint _number, string _image, string _background, string _description) {
+  function getTokenProperty(uint256 _tokenId) external view returns (uint _number, string memory _image, string memory _background, string memory _description) {
     return (tokenProperty[_tokenId].number, tokenProperty[_tokenId].image, tokenProperty[_tokenId].background, tokenProperty[_tokenId].description);
   }
 
-  function rand(uint min, uint max) private returns (uint){
+  function rand(uint min, uint max) private returns(uint256) {
     nonce++;
-    return uint(sha3(nonce))%(min+max)-min;
-  }
-
+    uint256 seed = uint256(keccak256(abi.encodePacked(
+        block.timestamp + block.difficulty +
+        ((uint256(keccak256(abi.encodePacked(block.coinbase)))) / (block.timestamp)) +
+        block.gaslimit + 
+        ((uint256(keccak256(abi.encodePacked(msg.sender)))) / (block.timestamp)) +
+        block.number + nonce
+    )));
+    
+    return seed%(min+max)-min;
+    }
+    
   function getHerosLength() external view returns (uint) {
     return heros.length;
   }
 
   function withdraw(uint amount) public payable onlyOwner returns(bool) {
-    require(amount <= this.balance);
-    owner.transfer(amount);
+    require(amount <= address(this).balance);
+    address payable _owner = payable(owner());
+    _owner.transfer(amount);
     return true;
   }
   
